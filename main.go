@@ -81,11 +81,34 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 const (
 	msgRangeErr = "не верный диапозон мин 0 макс 99.99"
 	msgErr      = "не верное число"
+)
+
+var (
+	inputs = []string{
+		"1.-1",
+		"-1.2",
+		"1",
+		"15",
+		"100",
+		"1,5",
+		"Text",
+		" 1,8 8",
+		"9999",
+		"0",
+		"1%.",
+		"1,,5",
+		"12..3",
+		"-0.1",
+		"-0",
+		"99.999",
+	}
+	wg sync.WaitGroup
 )
 
 func num_x_100(number string) (uint64, error) {
@@ -161,33 +184,25 @@ func hasMultipleDecimalSeparators(s string) bool {
 }
 
 func main() {
-	inputs := []string{
-		"1.-1",
-		"-1.2",
-		"1",
-		"15",
-		"100",
-		"1,5",
-		"Text",
-		" 1,8 8",
-		"9999",
-		"0",
-		"1%.",
-		"1,,5",
-		"12..3",
-		"-0.1",
-		"-0",
-		"99.999",
-	}
-
-	for _, input := range inputs {
-		fmt.Println("\nЗначение:", input)
-		value, err := num_x_100(input)
-		if err != nil {
-			fmt.Println("Ошибка:", err)
-		} else {
-			fmt.Println("Преобразованное значение:", value)
-		}
+	if err := run(); err != nil {
+		fmt.Println(err)
 	}
 }
 
+func run() error {
+	wg.Add(1)
+	go func() {
+		for _, input := range inputs {
+			fmt.Println("\nЗначение:", input)
+			value, err := num_x_100(input)
+			if err != nil {
+				fmt.Println("Ошибка:", err)
+			} else {
+				fmt.Println("Преобразованное значение:", value)
+			}
+		}
+		wg.Done()
+	}()
+	wg.Wait()
+	return nil
+}
