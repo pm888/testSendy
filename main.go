@@ -190,9 +190,10 @@ func main() {
 }
 
 func run() error {
-	wg.Add(1)
-	go func() {
-		for _, input := range inputs {
+	for _, input := range inputs {
+		wg.Add(1)
+		go func(input string) {
+			defer wg.Done()
 			fmt.Println("\nЗначение:", input)
 			value, err := num_x_100(input)
 			if err != nil {
@@ -200,9 +201,9 @@ func run() error {
 			} else {
 				fmt.Println("Преобразованное значение:", value)
 			}
-		}
-		wg.Done()
-	}()
+		}(input)
+	}
+
 	wg.Wait()
 	return nil
 }
